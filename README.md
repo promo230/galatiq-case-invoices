@@ -33,8 +33,30 @@ uv sync --extra dev && uv run pytest
 
 To switch the LLM reasoning on, `cp .env.example .env` and set
 `ANTHROPIC_API_KEY`. To pin the offline path explicitly, set
-`APCOPILOT_LLM_MODE=off`. Full details, including `apcopilot reset-db`, are in
-**[SETUP.md](SETUP.md)**.
+`APCOPILOT_LLM_MODE=off`. To replay the committed **live Grok traces** with no
+key at all, see the replay preset in [SETUP.md](SETUP.md). Full details,
+including `apcopilot reset-db`, are in **[SETUP.md](SETUP.md)**.
+
+## What it looks like
+
+The ops dashboard after processing the full sample corpus against live Grok —
+business-impact strip, triage lanes, per-invoice fraud scores:
+
+![Dashboard — run queue and business impact](docs/screenshots/dashboard.png)
+
+Drill into a run to see the reflection loop at work. On this invoice the VP
+agent's first draft failed verification (unaddressed HIGH flags — listed under
+*Critique / reflection notes*), so the critic forced a second round before the
+escalation was accepted. `needs_human` runs get an approve/reject action bar
+that feeds the audit trail:
+
+![Decision detail — two-round reflection, policy citations, human review](docs/screenshots/decision-detail.png)
+
+And a fraud attempt: the urgency/wire-transfer language is quarantined as data
+(never obeyed), the deterministic fraud score hits 110, and the invoice is
+auto-rejected by rules — zero LLM spend, full policy citation:
+
+![Fraud detail — quarantined adversarial text, fraud score, auto-reject](docs/screenshots/fraud-detail.png)
 
 ## Highlights
 
