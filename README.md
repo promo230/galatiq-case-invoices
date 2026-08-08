@@ -31,10 +31,13 @@ uv run apcopilot serve
 uv sync --extra dev && uv run pytest
 ```
 
-To switch the LLM reasoning on, `cp .env.example .env` and set
-`ANTHROPIC_API_KEY`. To pin the offline path explicitly, set
-`APCOPILOT_LLM_MODE=off`. To replay the committed **live Grok traces** with no
-key at all, see the replay preset in [SETUP.md](SETUP.md). Full details,
+To switch the LLM reasoning on, `cp .env.example .env` and configure a
+provider. The demonstrated engine is **xAI's Grok** — the brief's preference —
+via the OpenAI-compatible backend; [SETUP.md](SETUP.md) has the exact `.env`
+block. Setting `ANTHROPIC_API_KEY` alone also works (Anthropic is the code
+default, no provider config needed). To replay the committed **live Grok
+traces** with no key at all, see the replay preset in [SETUP.md](SETUP.md); to
+pin the offline path explicitly, set `APCOPILOT_LLM_MODE=off`. Full details,
 including `apcopilot reset-db`, are in **[SETUP.md](SETUP.md)**.
 
 ## What it looks like
@@ -61,9 +64,10 @@ auto-rejected by rules — zero LLM spend, full policy citation:
 ## Highlights
 
 - **Hybrid ingestion across five formats** — `.json/.csv/.xml` go through
-  deterministic parsers; messy `.txt/.pdf` use LLM extraction (Haiku first,
-  Sonnet retry on low confidence) with a regex heuristic fallback, so a missing
-  key degrades quality, never availability.
+  deterministic parsers; messy `.txt/.pdf` use LLM extraction (a cheap model
+  first, escalating to a stronger one on low confidence —
+  `grok-4.20-non-reasoning` → `grok-4.20` in the recorded run) with a regex
+  heuristic fallback, so a missing key degrades quality, never availability.
 - **Policy as config** — every threshold, tolerance, and fraud weight lives in
   [`data/seed/policies.yaml`](data/seed/policies.yaml); the validation rules
   engine makes zero LLM calls and emits severity-ranked flags with evidence
@@ -100,7 +104,7 @@ SQLite run store the dashboard reads.
 flowchart TD
     DOC["Invoice document<br/>pdf / txt / json / csv / xml"]
     DOC -->|"json / csv / xml"| DET["Deterministic parser"]
-    DOC -->|"txt / pdf"| LLME["LLM extraction<br/>Haiku, Sonnet retry"]
+    DOC -->|"txt / pdf"| LLME["LLM extraction<br/>cheap model, stronger retry"]
     LLME -->|"LLM off or unavailable"| HEUR["Regex heuristic fallback"]
     DET --> VAL
     LLME --> VAL
@@ -126,7 +130,7 @@ a crash mid-pipeline resumes without re-running (or re-billing) earlier stages.
 | `src/apcopilot/ingestion/` | Format dispatch: deterministic parsers, LLM extraction for messy text, regex heuristic fallback |
 | `src/apcopilot/agents/rules/` | Deterministic validation rule families, one module each, evidence attached to every flag |
 | `src/apcopilot/agents/approval.py` | VP approval: guardrails, propose/critique loop, Python-side citation and threshold verification |
-| `src/apcopilot/llm/` | Anthropic wrapper: structured output via forced tool use; live / record / replay / off modes |
+| `src/apcopilot/llm/` | Provider-pluggable LLM clients — Anthropic and any OpenAI-compatible endpoint (xAI's Grok is the demonstrated engine): structured output via forced tool use; live / record / replay / off modes |
 | `src/apcopilot/tools/` | Shared lookups: policy, inventory, vendors, FX, payment ledger |
 | `src/apcopilot/db/` | Schema, seeding, and the run store (runs, flags, traces, LLM calls, payments) |
 | `src/apcopilot/api/` | FastAPI dashboard and human review actions |

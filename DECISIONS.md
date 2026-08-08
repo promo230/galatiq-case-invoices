@@ -8,7 +8,8 @@ system map, see the [Architecture section of the README](README.md#architecture)
 
 `src/apcopilot/ingestion/__init__.py` routes by format: JSON/CSV/XML go through
 deterministic structural parsers; only messy TXT/PDF documents hit the LLM
-(`llm_extract.py`, Haiku first, escalating to Sonnet on low confidence); and a regex
+(`llm_extract.py`: a cheap model first, escalating to a stronger one on low
+confidence — `grok-4.20-non-reasoning` then `grok-4.20` in the recorded run); and a regex
 heuristic (`heuristic.py`) catches the LLM path whenever the model is off or
 unavailable. The rejected alternative — LLM-extract everything — is strictly worse on
 three axes: cost (paying tokens to re-derive fields a `json.loads` gets exactly),
@@ -111,8 +112,8 @@ every deterministic fallback path is exercised; `record` captures real responses
 fixtures keyed by hash of (model, system, user); `replay` serves those fixtures with
 zero network access and never falls back to a live call. The practical payoff: a
 grader can run the full system with no API key at all, and can also watch genuine
-LLM reasoning traces offline via replay. It's the same mechanism that makes the test
-suite deterministic and free.
+LLM reasoning offline by replaying the committed fixtures from the live Grok corpus
+run. It's the same mechanism that makes the test suite deterministic and free.
 
 ## 10. Pinned as-of date
 
@@ -123,22 +124,30 @@ decisions each time the repo is evaluated. Pinning the clock keeps every run
 reproducible against the shipped data. The date is one config value away from being
 live in production.
 
-## 11. Anthropic instead of Grok
+## 11. Engine-agnostic by design; Grok as the demonstrated engine
 
-The brief names Grok but explicitly allows other models absent an API key. The swap is
-deliberately shallow: model names are four fields in `Settings` and the entire
-provider surface is the one wrapper in `llm/client.py`, which forces structured output
-via a pinned tool call — a technique any tool-calling provider supports. Nothing
-architectural depends on the vendor; pointing the system back at Grok (or anything
-else) is a client-wrapper change, not a redesign.
+The brief names Grok as the preferred engine, and Grok is what this submission
+demonstrates. The system was built engine-agnostic from the start: every LLM
+interaction goes through one structured-call interface — a forced tool call returning
+a schema-validated payload, a technique any tool-calling provider supports — and model
+names are four fields in `Settings`. Initial development ran on Anthropic. Adopting
+Grok as the demonstrated backend then cost exactly what the isolation claim predicted:
+one new client (`llm/openai_compat.py`, the same forced-tool structured call against
+any OpenAI-compatible `/chat/completions` endpoint) plus env vars
+(`APCOPILOT_LLM_PROVIDER=openai_compat`, base URL `https://api.x.ai/v1`, Grok model
+ids). No agent, rule, or graph code changed — the shallowness of that swap is the
+evidence that nothing architectural ever depended on the vendor.
 
-That claim is now literal: `llm/openai_compat.py` implements the same forced-tool
-structured call against any OpenAI-compatible `/chat/completions` endpoint, selected
-by `APCOPILOT_LLM_PROVIDER=openai_compat` plus a base URL. Grok (`https://api.x.ai/v1`),
-Gemini's free tier, and local Ollama are each a `.env` change — see "Running the live
-LLM path for free" in SETUP.md. Modes, fixtures, per-attempt logging, and cost
-accounting stay in the one wrapper; only the single live-call step branches on the
-provider.
+The Grok backend is live-verified, not hypothetical: the full sample corpus ran
+against `grok-4.20-non-reasoning` (extraction) and `grok-4.20` (extraction retry, VP
+approval, critic), exercising real multi-round reflection (invoice_1007 took two
+critique rounds) and real injection resistance, and the fixtures recorded from that
+run are committed under `tests/fixtures/llm/`, replayable with no key. Anthropic
+remains a first-class backend and the code default — `ANTHROPIC_API_KEY` alone
+enables it — and Gemini's free tier or local Ollama are each a `.env` change; see
+"Running the live LLM path for free" in SETUP.md. Modes, fixtures, per-attempt
+logging, and cost accounting stay in the shared wrapper; only the single live-call
+step branches on the provider.
 
 ## What I'd do next with more time
 
@@ -152,7 +161,8 @@ provider.
   (with an auto-approve limit) closes the loop.
 - **Extraction eval harness** — the corpus is effectively labeled; a per-field
   precision/recall harness would turn prompt and model changes from vibes into
-  measured regressions, and justify the Haiku-first/Sonnet-retry split with numbers.
+  measured regressions, and justify the cheap-first/stronger-retry model split with
+  numbers.
 - **Partial approval for stock shortfalls** — POL-STOCK-01 already contemplates
   paying up to available stock with human confirmation; the workflow isn't built.
 - **Prompt caching** — the catalog and policy digests are stable per run; caching the

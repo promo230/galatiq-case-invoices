@@ -37,9 +37,12 @@ passed as environment variables — the prefix is `APCOPILOT_`):
 
 | Variable | Default | What it does |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | unset | Enables real LLM extraction and the VP proposer/critic reflection loop. |
+| `APCOPILOT_LLM_PROVIDER` | `anthropic` | `anthropic` \| `openai_compat`. The submission's demonstrated engine is xAI's Grok via `openai_compat` (see below); the Anthropic default needs no provider config, just a key. |
+| `ANTHROPIC_API_KEY` | unset | Enables real LLM extraction and the VP proposer/critic reflection loop on the default Anthropic backend. |
+| `APCOPILOT_OPENAI_BASE_URL` / `APCOPILOT_OPENAI_API_KEY` | unset | Endpoint and key for the `openai_compat` backend (xAI Grok, Gemini, Ollama, ...). |
 | `APCOPILOT_LLM_MODE` | `live` | `live` \| `off` \| `record` \| `replay`. See below. |
 | `APCOPILOT_EXTRACT_MODEL` | `claude-haiku-4-5` | Model for document extraction. |
+| `APCOPILOT_EXTRACT_RETRY_MODEL` | `claude-sonnet-5` | Stronger model retried when extraction confidence is low. |
 | `APCOPILOT_APPROVAL_MODEL` | `claude-sonnet-5` | Model for the VP approval proposer. |
 | `APCOPILOT_CRITIC_MODEL` | `claude-sonnet-5` | Model for the critic in the reflection loop. |
 | `APCOPILOT_AS_OF_DATE` | `2026-02-01` | The "today" the due-date rules evaluate against. Pinned so results don't drift as the wall clock moves past the corpus's dates. |
@@ -50,7 +53,7 @@ passed as environment variables — the prefix is `APCOPILOT_`):
 | Mode | Behaviour |
 |---|---|
 | `off` | **Zero API calls, zero cost, fully deterministic.** `.json/.csv/.xml` use the structural parsers; `.txt/.pdf` use the regex heuristic extractor; approval uses the rules-only fallback. This is what the test suite runs in. |
-| `live` | Uses the Anthropic API when a key is resolvable. **Without a key it degrades gracefully** to exactly the same deterministic paths as `off`, so a missing key is never a hard failure. |
+| `live` | Uses the configured provider's API when a key is resolvable — xAI's Grok in the demonstrated config, Anthropic by default. **Without a key it degrades gracefully** to exactly the same deterministic paths as `off`, so a missing key is never a hard failure. |
 | `record` / `replay` | Capture LLM responses to `tests/fixtures/llm/` and play them back, for reproducible LLM-path runs. |
 
 To force the offline path explicitly:
@@ -62,9 +65,10 @@ export APCOPILOT_LLM_MODE=off
 ### Running the live LLM path for free
 
 The LLM backend is provider-pluggable: besides Anthropic, any OpenAI-compatible
-`/chat/completions` endpoint works via config alone. Google Gemini's free tier
-is the zero-cost preset — paste this into `.env` (key from
-https://aistudio.google.com/apikey):
+`/chat/completions` endpoint works via config alone. This is how the submission
+runs its demonstrated engine, xAI's Grok (exact settings below); for a $0 live
+run instead, Google Gemini's free tier works the same way — paste this into
+`.env` (key from https://aistudio.google.com/apikey):
 
 ```bash
 APCOPILOT_LLM_PROVIDER=openai_compat
@@ -76,12 +80,15 @@ APCOPILOT_APPROVAL_MODEL=gemini-2.5-flash
 APCOPILOT_CRITIC_MODEL=gemini-2.5-flash
 ```
 
-The same block works unchanged for xAI (`APCOPILOT_OPENAI_BASE_URL=https://api.x.ai/v1`,
-Grok model ids) or local Ollama (`APCOPILOT_OPENAI_BASE_URL=http://localhost:11434/v1`,
-no key needed) — only the base URL, key, and model ids differ. All LLM modes
-behave identically regardless of provider: `record` → `replay` fixtures store
-the parsed structured response, so a run recorded against Gemini replays
-offline exactly like one recorded against Claude.
+The same block works unchanged for xAI's Grok — the engine the recorded run and
+the README screenshots used (`APCOPILOT_OPENAI_BASE_URL=https://api.x.ai/v1`,
+`APCOPILOT_EXTRACT_MODEL=grok-4.20-non-reasoning`, `grok-4.20` for the other
+three model vars) — or local Ollama
+(`APCOPILOT_OPENAI_BASE_URL=http://localhost:11434/v1`, no key needed); only the
+base URL, key, and model ids differ. All LLM modes behave identically regardless
+of provider: `record` → `replay` fixtures store the parsed structured response,
+so a run recorded against Gemini or Claude replays offline exactly like the
+committed Grok run.
 
 ### Replaying the committed Grok traces (no key needed)
 
@@ -260,5 +267,5 @@ clean-slate outcomes above.
 |---|---|
 | An invoice that approved before now shows `DUPLICATE_ALREADY_PAID` | Working as designed — that invoice number was already paid in this database. `uv run apcopilot reset-db --yes`. |
 | `ModuleNotFoundError: apcopilot` | Run `uv sync`, or use `uv run ...`. `main.py` also adds `src/` to `sys.path` itself, so plain `python main.py` works from the repo root without installing. |
-| Everything is `decided_by: rules` and costs $0 | No API key resolved, or `APCOPILOT_LLM_MODE=off`. That is the intended offline behaviour; set `ANTHROPIC_API_KEY` to enable the LLM path. |
+| Everything is `decided_by: rules` and costs $0 | No API key resolved, or `APCOPILOT_LLM_MODE=off`. That is the intended offline behaviour; configure a provider per [section 3](#3-configure-optional) — the `openai_compat` block for Grok/Gemini/Ollama, or `ANTHROPIC_API_KEY` alone for the Anthropic default — to enable the LLM path. |
 | Every invoice looks past due | `APCOPILOT_AS_OF_DATE` was overridden. The corpus is dated Jan 2026; the default `2026-02-01` is what the fixtures assume. |
