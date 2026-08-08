@@ -1,0 +1,15 @@
+{
+  "response": {
+    "decision": "needs_human",
+    "rationale": "HIGH flag on POL-VENDOR-01 for unknown vendor 'QuickShip Distributers (formerly FastShip Ltd.)' not in vendor master (best match score 76). Per POL-VENDOR-01 unknown vendors require rejection or escalation (never approval). No other HIGH/CRITICAL flags; total 9975 below 10k threshold; fraud score 30 not critical; no dup/revision issues. Route to human for vendor validation.",
+    "cited_policy_ids": [
+      "POL-VENDOR-01"
+    ],
+    "addressed_flag_rule_ids": [
+      "POL-VENDOR-01"
+    ],
+    "confidence": 0.75
+  },
+  "input_tokens": 1698,
+  "output_tokens": 142
+}

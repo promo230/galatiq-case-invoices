@@ -1,0 +1,13 @@
+{
+  "response": {
+    "decision": "approve",
+    "rationale": "No validation flags present. Vendor is in master (POL-VENDOR-01), total $2750 well below vendor auto-approve limit of $10000 and high-value threshold, arithmetic and data integrity confirmed with matching totals, no fraud/duplicates/revision issues. All policies satisfied for auto-approval.",
+    "cited_policy_ids": [
+      "POL-VENDOR-01"
+    ],
+    "addressed_flag_rule_ids": [],
+    "confidence": 0.9
+  },
+  "input_tokens": 1593,
+  "output_tokens": 108
+}

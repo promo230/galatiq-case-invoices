@@ -1,0 +1,15 @@
+{
+  "response": {
+    "decision": "needs_human",
+    "rationale": "HIGH flag on POL-ITEM-01 for unknown item WidgetC (SKU WIDGETC) not in catalog; per policy unknown items cannot be auto-approved and require human review. No other flags, total below vendor limit and 10K threshold, fraud score 0, all other policies satisfied.",
+    "cited_policy_ids": [
+      "POL-ITEM-01"
+    ],
+    "addressed_flag_rule_ids": [
+      "POL-ITEM-01"
+    ],
+    "confidence": 0.85
+  },
+  "input_tokens": 1669,
+  "output_tokens": 114
+}

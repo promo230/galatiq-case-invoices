@@ -1,0 +1,15 @@
+{
+  "response": {
+    "decision": "needs_human",
+    "rationale": "HIGH flag POL-STOCK-01 (stock shortfall: 12 requested for WIDGETB vs 10 available) prevents auto-approval; policy requires human confirmation for any partial approval. No other blocking flags; total $6000 below vendor limit and 10K threshold.",
+    "cited_policy_ids": [
+      "POL-STOCK-01"
+    ],
+    "addressed_flag_rule_ids": [
+      "POL-STOCK-01"
+    ],
+    "confidence": 0.85
+  },
+  "input_tokens": 1646,
+  "output_tokens": 109
+}

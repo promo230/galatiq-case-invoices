@@ -1,0 +1,18 @@
+{
+  "response": {
+    "decision": "approve",
+    "rationale": "No validation flags of any severity. Vendor known in master per POL-VENDOR-01, total $3000 well below vendor auto-approve limit (POL-VENDOR-02) and $10k high-value threshold (POL-THRESHOLD-10K), fraud score 0 with no urgency/payment-change language (POL-FRAUD-01), no duplicate/revision issues (POL-DUP-01), arithmetic matches exactly (POL-MATH-01), currency and data integrity clean. All policies satisfied for auto-approval.",
+    "cited_policy_ids": [
+      "POL-VENDOR-01",
+      "POL-VENDOR-02",
+      "POL-THRESHOLD-10K",
+      "POL-FRAUD-01",
+      "POL-DUP-01",
+      "POL-MATH-01"
+    ],
+    "addressed_flag_rule_ids": [],
+    "confidence": 0.9
+  },
+  "input_tokens": 1595,
+  "output_tokens": 184
+}

@@ -83,6 +83,27 @@ behave identically regardless of provider: `record` → `replay` fixtures store
 the parsed structured response, so a run recorded against Gemini replays
 offline exactly like one recorded against Claude.
 
+### Replaying the committed Grok traces (no key needed)
+
+The repo ships fixtures recorded against xAI's Grok (the brief's preferred
+engine) covering the full sample corpus — real LLM extraction and real
+multi-round VP reasoning, replayable with **no API key and no network**.
+Fixtures are matched by a hash of (model, prompts), so replay needs the same
+model names the recording used:
+
+```bash
+APCOPILOT_LLM_MODE=replay
+APCOPILOT_EXTRACT_MODEL=grok-4.20-non-reasoning
+APCOPILOT_EXTRACT_RETRY_MODEL=grok-4.20
+APCOPILOT_APPROVAL_MODEL=grok-4.20
+APCOPILOT_CRITIC_MODEL=grok-4.20
+```
+
+With that in `.env`, `python main.py --batch` reproduces the recorded live run
+end-to-end offline. A prompt or model change simply misses the fixture and
+falls back to the deterministic path (`LLMUnavailableError` → rules), so
+replay can never silently hit the network.
+
 ## 4. Run one invoice
 
 The entrypoint the brief asks for:

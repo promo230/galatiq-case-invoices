@@ -1,0 +1,17 @@
+{
+  "response": {
+    "decision": "approve",
+    "rationale": "No validation flags of any severity. Vendor is known in master (POL-VENDOR-01), total 750 well below both high-value threshold and vendor auto-approve limit (POL-VENDOR-02), arithmetic matches with no residuals (POL-MATH-01), fraud score 0 with no adversarial language (POL-FRAUD-01), no duplicates or revisions (POL-DUP-01), currency and data integrity all pass. Therefore auto-approval is warranted.",
+    "cited_policy_ids": [
+      "POL-VENDOR-01",
+      "POL-VENDOR-02",
+      "POL-MATH-01",
+      "POL-FRAUD-01",
+      "POL-DUP-01"
+    ],
+    "addressed_flag_rule_ids": [],
+    "confidence": 0.95
+  },
+  "input_tokens": 1567,
+  "output_tokens": 166
+}

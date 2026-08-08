@@ -1,0 +1,19 @@
+{
+  "response": {
+    "decision": "needs_human",
+    "rationale": "HIGH flags for MATH_MISMATCH (POL-MATH-01 arithmetic failure with $110 residual) and two STOCK_SHORTFALL (POL-STOCK-01: WIDGETA 20>15 and WIDGETB 15>10) prevent auto-approval; combined with OVER_VENDOR_LIMIT (POL-VENDOR-02) and total >$10k (POL-THRESHOLD-10K) requiring explicit VP rationale and extra scrutiny, this must route to human for partial-stock recommendation, vendor clarification on math, and review.",
+    "cited_policy_ids": [
+      "POL-MATH-01",
+      "POL-STOCK-01",
+      "POL-VENDOR-02",
+      "POL-THRESHOLD-10K"
+    ],
+    "addressed_flag_rule_ids": [
+      "MATH_MISMATCH",
+      "STOCK_SHORTFALL"
+    ],
+    "confidence": 0.85
+  },
+  "input_tokens": 1878,
+  "output_tokens": 184
+}

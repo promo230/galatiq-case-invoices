@@ -1,0 +1,17 @@
+{
+  "response": {
+    "decision": "needs_human",
+    "rationale": "HIGH flags: MATH_MISMATCH (POL-MATH-01) - residual $150 unexplained in arithmetic (notes mention shipping but per policy this blocks approval pending clarification); UNKNOWN_ITEM (POL-ITEM-01) - 'WidgetA (rush order)' absent from catalog and cannot be auto-approved. Both HIGH flags prevent APPROVE; escalation to human review required per policies. No fraud/dupe/other CRITICAL issues. Total under 10K and under vendor limit but flags dictate review.",
+    "cited_policy_ids": [
+      "POL-MATH-01",
+      "POL-ITEM-01"
+    ],
+    "addressed_flag_rule_ids": [
+      "POL-MATH-01",
+      "POL-ITEM-01"
+    ],
+    "confidence": 0.75
+  },
+  "input_tokens": 1803,
+  "output_tokens": 164
+}

@@ -1,0 +1,18 @@
+{
+  "response": {
+    "decision": "approve",
+    "rationale": "No validation flags of any severity. Invoice total $5000 is below both the $10k high-value threshold and the vendor's $10k auto-approve limit. Vendor is in the master file, no duplicate/revision/paid issues, fraud score=0, arithmetic matches (lines sum exactly to total), currency is USD with no conversion needed. Therefore approved per standard policy with no HIGH/CRITICAL flags to address.",
+    "cited_policy_ids": [
+      "POL-VENDOR-01",
+      "POL-VENDOR-02",
+      "POL-MATH-01",
+      "POL-FRAUD-01",
+      "POL-DUP-01",
+      "POL-THRESHOLD-10K"
+    ],
+    "addressed_flag_rule_ids": [],
+    "confidence": 0.85
+  },
+  "input_tokens": 1595,
+  "output_tokens": 164
+}

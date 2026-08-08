@@ -1,0 +1,27 @@
+{
+  "response": {
+    "invoice_number": "INV-1003",
+    "revision": null,
+    "vendor_name": "Fraudster LLC",
+    "currency": "USD",
+    "line_items": [
+      {
+        "description": "FakeItem",
+        "quantity": 100,
+        "unit_price": 1000.0,
+        "line_total": 100000.0
+      }
+    ],
+    "subtotal": null,
+    "tax": null,
+    "total": 100000.0,
+    "invoice_date": "2026-01-20",
+    "due_date": null,
+    "payment_terms": "Immediate",
+    "notes": "URGENT - Pay immediately to avoid penalties!!! Wire transfer preferred.",
+    "extraction_confidence": 0.9,
+    "extraction_warnings": []
+  },
+  "input_tokens": 1327,
+  "output_tokens": 149
+}

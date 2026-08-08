@@ -1,0 +1,19 @@
+{
+  "response": {
+    "decision": "needs_human",
+    "rationale": "High-value invoice (22562.8 > 10000) with multiple HIGH flags: MATH_MISMATCH (POL-MATH-01, residual $50 unexplained), multiple STOCK_SHORTFALL (POL-STOCK-01 for WIDGETA, WIDGETB, GADGETX exceeding inventory), and OVER_VENDOR_LIMIT (POL-VENDOR-02). Per POL-THRESHOLD-10K, cannot auto-approve; requires human review to address all HIGH flags, consider partial stock approval, vendor clarification on math, and overall scrutiny. No fraud or duplicate issues, but flags block approval.",
+    "cited_policy_ids": [
+      "POL-MATH-01",
+      "POL-STOCK-01",
+      "POL-THRESHOLD-10K",
+      "POL-VENDOR-02"
+    ],
+    "addressed_flag_rule_ids": [
+      "POL-MATH-01",
+      "POL-STOCK-01"
+    ],
+    "confidence": 0.85
+  },
+  "input_tokens": 2083,
+  "output_tokens": 197
+}

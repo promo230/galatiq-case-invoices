@@ -1,0 +1,20 @@
+{
+  "response": {
+    "decision": "needs_human",
+    "rationale": "Invoice has multiple HIGH flags: POL-MATH-01 (MATH_MISMATCH) with $110 arithmetic residual (total 15525 != 14750+885=15635) which per policy blocks approval pending clarification; two instances of POL-STOCK-01 (STOCK_SHORTFALL) where WIDGETA (20>15) and WIDGETB (15>10) exceed inventory (partial fulfillment would require human confirmation per policy). Also MEDIUM POL-VENDOR-02 as total 15525 > vendor limit 7500. Total exceeds 10000 high-value threshold. All HIGH flags require VP review with rationale; cannot silently approve. Routing to NEEDS_HUMAN for resolution of math error, stock limits, and extra scrutiny.",
+    "cited_policy_ids": [
+      "POL-MATH-01",
+      "POL-STOCK-01",
+      "POL-VENDOR-02",
+      "POL-THRESHOLD-10K"
+    ],
+    "addressed_flag_rule_ids": [
+      "POL-MATH-01",
+      "POL-STOCK-01",
+      "POL-STOCK-01"
+    ],
+    "confidence": 0.85
+  },
+  "input_tokens": 1984,
+  "output_tokens": 236
+}

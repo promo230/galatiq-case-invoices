@@ -1,0 +1,17 @@
+{
+  "response": {
+    "decision": "needs_human",
+    "rationale": "HIGH flag POL-STOCK-01 (STOCK_SHORTFALL on GADGETX: 8>5) prevents auto-approval per stock policy; total $15225 exceeds both vendor limit $10000 and high-value threshold, triggering POL-THRESHOLD-10K requirement for explicit VP rationale and human confirmation of any partial approval on available inventory. No fraud/dupe/data issues, but stock and threshold mandate escalation.",
+    "cited_policy_ids": [
+      "POL-STOCK-01",
+      "POL-VENDOR-02",
+      "POL-THRESHOLD-10K"
+    ],
+    "addressed_flag_rule_ids": [
+      "POL-STOCK-01"
+    ],
+    "confidence": 0.85
+  },
+  "input_tokens": 1731,
+  "output_tokens": 151
+}

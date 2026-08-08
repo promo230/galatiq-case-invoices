@@ -1,0 +1,8 @@
+{
+  "response": {
+    "approved": true,
+    "notes": []
+  },
+  "input_tokens": 1448,
+  "output_tokens": 15
+}

@@ -1,0 +1,17 @@
+{
+  "response": {
+    "decision": "needs_human",
+    "rationale": "HIGH flag POL-STOCK-01 (stock shortfall: 20 > 5 available) prevents approval per policy; total $15000 exceeds both POL-THRESHOLD-10K ($10000) and POL-VENDOR-02 vendor limit ($7500); POL-THRESHOLD-10K requires VP-level review with explicit rationale on every HIGH/CRITICAL flag and prohibits silent approval, so escalation to human is required.",
+    "cited_policy_ids": [
+      "POL-THRESHOLD-10K",
+      "POL-STOCK-01",
+      "POL-VENDOR-02"
+    ],
+    "addressed_flag_rule_ids": [
+      "POL-STOCK-01"
+    ],
+    "confidence": 0.85
+  },
+  "input_tokens": 1676,
+  "output_tokens": 149
+}

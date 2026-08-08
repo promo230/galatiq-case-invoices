@@ -1,0 +1,13 @@
+{
+  "response": {
+    "decision": "needs_human",
+    "rationale": "MEDIUM POL-CUR-01 currency mismatch (GBP vs vendor USD) requires review per policy. No HIGH/CRITICAL flags, total $508 USD well below 10k and vendor limit, vendor known, no fraud/duplicates/other violations.",
+    "cited_policy_ids": [
+      "POL-CUR-01"
+    ],
+    "addressed_flag_rule_ids": [],
+    "confidence": 0.8
+  },
+  "input_tokens": 1617,
+  "output_tokens": 97
+}

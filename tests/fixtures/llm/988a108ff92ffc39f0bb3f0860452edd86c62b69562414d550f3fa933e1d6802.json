@@ -1,0 +1,27 @@
+{
+  "response": {
+    "invoice_number": "1002",
+    "revision": null,
+    "vendor_name": "Gadgets Co.",
+    "currency": "USD",
+    "line_items": [
+      {
+        "description": "GadgetX",
+        "quantity": 20,
+        "unit_price": 750,
+        "line_total": 15000
+      }
+    ],
+    "subtotal": 15000.0,
+    "tax": null,
+    "total": 15000.0,
+    "invoice_date": "2026-01-30",
+    "due_date": "2026-01-30",
+    "payment_terms": "Net 30",
+    "notes": null,
+    "extraction_confidence": 0.85,
+    "extraction_warnings": []
+  },
+  "input_tokens": 1316,
+  "output_tokens": 138
+}

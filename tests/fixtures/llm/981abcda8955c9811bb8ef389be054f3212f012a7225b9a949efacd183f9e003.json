@@ -1,0 +1,17 @@
+{
+  "response": {
+    "decision": "needs_human",
+    "rationale": "Invoice cannot be auto-approved due to three HIGH flags: two POL-ITEM-01 (UNKNOWN_ITEM) for SuperGizmo and MegaSprocket (absent from catalog, must not be auto-approved per policy), and one POL-VENDOR-01 (UNKNOWN_VENDOR) for 'NoProd Industries' (mandatory rejection or escalation, never approval). Escalating to human review to resolve unknown vendor and items; total below 10K threshold and no fraud/dupe/math issues.",
+    "cited_policy_ids": [
+      "POL-ITEM-01",
+      "POL-VENDOR-01"
+    ],
+    "addressed_flag_rule_ids": [
+      "POL-ITEM-01",
+      "POL-VENDOR-01"
+    ],
+    "confidence": 0.75
+  },
+  "input_tokens": 1743,
+  "output_tokens": 161
+}

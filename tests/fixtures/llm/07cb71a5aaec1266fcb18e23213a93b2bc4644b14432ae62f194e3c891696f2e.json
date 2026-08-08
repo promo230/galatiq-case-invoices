@@ -1,0 +1,44 @@
+{
+  "response": {
+    "invoice_number": "INV-1010",
+    "vendor_name": "Consolidated Materials Group",
+    "currency": "USD",
+    "line_items": [
+      {
+        "description": "WidgetA",
+        "quantity": 8,
+        "unit_price": 250.0,
+        "line_total": 2000.0
+      },
+      {
+        "description": "WidgetB",
+        "quantity": 4,
+        "unit_price": 500.0,
+        "line_total": 2000.0
+      },
+      {
+        "description": "GadgetX",
+        "quantity": 2,
+        "unit_price": 750.0,
+        "line_total": 1500.0
+      },
+      {
+        "description": "WidgetA (rush order)",
+        "quantity": 4,
+        "unit_price": 300.0,
+        "line_total": 1200.0
+      }
+    ],
+    "subtotal": 6700.0,
+    "tax": 335.0,
+    "total": 7185.0,
+    "invoice_date": "2026-01-27",
+    "due_date": "2026-02-26",
+    "payment_terms": "Net 30",
+    "notes": "Shipping: $150.00",
+    "extraction_confidence": 0.95,
+    "extraction_warnings": []
+  },
+  "input_tokens": 1431,
+  "output_tokens": 254
+}

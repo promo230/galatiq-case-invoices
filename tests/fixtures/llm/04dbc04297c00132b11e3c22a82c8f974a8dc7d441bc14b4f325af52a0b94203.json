@@ -1,0 +1,20 @@
+{
+  "response": {
+    "decision": "approve",
+    "rationale": "No validation flags of any severity. Vendor is in master (POL-VENDOR-01), total $1890 validated and matches stated (POL-MATH-01, POL-DATA-01), below high-value threshold and vendor auto-approve limit (POL-THRESHOLD-10K, POL-VENDOR-02), fraud score 0 with no urgency or payment change signals (POL-FRAUD-01), items appear valid with no stock or catalog issues flagged (POL-ITEM-01, POL-STOCK-01). All policies allow auto-approval with no HIGH/CRITICAL flags to address.",
+    "cited_policy_ids": [
+      "POL-VENDOR-01",
+      "POL-MATH-01",
+      "POL-DATA-01",
+      "POL-THRESHOLD-10K",
+      "POL-VENDOR-02",
+      "POL-FRAUD-01",
+      "POL-ITEM-01",
+      "POL-STOCK-01"
+    ],
+    "addressed_flag_rule_ids": [],
+    "confidence": 0.85
+  },
+  "input_tokens": 1591,
+  "output_tokens": 211
+}

@@ -1,0 +1,13 @@
+{
+  "response": {
+    "decision": "approve",
+    "rationale": "No validation flags of any severity. Invoice total (USD 4496.25) is below both the vendor auto-approval limit (7500) and the high-value threshold (10000). Vendor is known in master, no duplicates, fraud score 0, arithmetic appears consistent (no POL-MATH-01 violation flagged), items appear catalogued (no POL-ITEM-01 flag). Currency conversion applied with no POL-CUR-01 flag raised.",
+    "cited_policy_ids": [
+      "POL-VENDOR-02"
+    ],
+    "addressed_flag_rule_ids": [],
+    "confidence": 0.85
+  },
+  "input_tokens": 1593,
+  "output_tokens": 139
+}
