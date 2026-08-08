@@ -59,6 +59,30 @@ To force the offline path explicitly:
 export APCOPILOT_LLM_MODE=off
 ```
 
+### Running the live LLM path for free
+
+The LLM backend is provider-pluggable: besides Anthropic, any OpenAI-compatible
+`/chat/completions` endpoint works via config alone. Google Gemini's free tier
+is the zero-cost preset — paste this into `.env` (key from
+https://aistudio.google.com/apikey):
+
+```bash
+APCOPILOT_LLM_PROVIDER=openai_compat
+APCOPILOT_OPENAI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/
+APCOPILOT_OPENAI_API_KEY=your-key-here   # GEMINI_API_KEY / OPENAI_API_KEY also work
+APCOPILOT_EXTRACT_MODEL=gemini-2.5-flash-lite
+APCOPILOT_EXTRACT_RETRY_MODEL=gemini-2.5-flash
+APCOPILOT_APPROVAL_MODEL=gemini-2.5-flash
+APCOPILOT_CRITIC_MODEL=gemini-2.5-flash
+```
+
+The same block works unchanged for xAI (`APCOPILOT_OPENAI_BASE_URL=https://api.x.ai/v1`,
+Grok model ids) or local Ollama (`APCOPILOT_OPENAI_BASE_URL=http://localhost:11434/v1`,
+no key needed) — only the base URL, key, and model ids differ. All LLM modes
+behave identically regardless of provider: `record` → `replay` fixtures store
+the parsed structured response, so a run recorded against Gemini replays
+offline exactly like one recorded against Claude.
+
 ## 4. Run one invoice
 
 The entrypoint the brief asks for:

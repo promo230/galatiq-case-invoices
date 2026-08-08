@@ -132,6 +132,14 @@ via a pinned tool call — a technique any tool-calling provider supports. Nothi
 architectural depends on the vendor; pointing the system back at Grok (or anything
 else) is a client-wrapper change, not a redesign.
 
+That claim is now literal: `llm/openai_compat.py` implements the same forced-tool
+structured call against any OpenAI-compatible `/chat/completions` endpoint, selected
+by `APCOPILOT_LLM_PROVIDER=openai_compat` plus a base URL. Grok (`https://api.x.ai/v1`),
+Gemini's free tier, and local Ollama are each a `.env` change — see "Running the live
+LLM path for free" in SETUP.md. Modes, fixtures, per-attempt logging, and cost
+accounting stay in the one wrapper; only the single live-call step branches on the
+provider.
+
 ## What I'd do next with more time
 
 - **SSE instead of polling** — the dashboard currently polls the run store on a timer

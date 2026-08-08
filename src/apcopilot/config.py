@@ -19,6 +19,14 @@ class Settings(BaseSettings):
 
     anthropic_api_key: str | None = None
 
+    # Provider for the live LLM path. "openai_compat" speaks the OpenAI
+    # /chat/completions dialect against `openai_base_url` — Gemini's OpenAI
+    # endpoint, xAI, or local Ollama — in which case the four *_model fields
+    # below should be set to that provider's model ids.
+    llm_provider: Literal["anthropic", "openai_compat"] = "anthropic"
+    openai_base_url: str | None = None
+    openai_api_key: str | None = None
+
     llm_mode: LLMMode = "live"
     extract_model: str = "claude-haiku-4-5"
     extract_retry_model: str = "claude-sonnet-5"
@@ -54,6 +62,15 @@ class Settings(BaseSettings):
         import os
 
         return self.anthropic_api_key or os.environ.get("ANTHROPIC_API_KEY")
+
+    def resolved_openai_key(self) -> str | None:
+        import os
+
+        return (
+            self.openai_api_key
+            or os.environ.get("OPENAI_API_KEY")
+            or os.environ.get("GEMINI_API_KEY")
+        )
 
     def ensure_dirs(self) -> None:
         self.var_dir.mkdir(parents=True, exist_ok=True)

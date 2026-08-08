@@ -4,7 +4,7 @@ import hashlib
 import json
 import time
 from decimal import Decimal
-from functools import lru_cache
+from functools import lru_cache, partial
 from pathlib import Path
 from typing import Any
 
@@ -80,6 +80,49 @@ def _write_fixture(
     )
 
 
+async def _call_anthropic(
+    *,
+    api_key: str,
+    model: str,
+    system: str,
+    user: str,
+    response_model: type[BaseModel],
+) -> tuple[dict[str, Any], int, int, str | None]:
+    """One structured call against the Anthropic Messages API.
+
+    Returns (tool_input, input_tokens, output_tokens, stop_reason). `tool_input`
+    is {} when the response carries no tool_use block; the caller's schema
+    validation then fails and drives the self-correction retry.
+    """
+    client = _get_client(api_key)
+    tool = {
+        "name": _TOOL_NAME,
+        "description": (
+            f"Emit the final result as structured data matching the "
+            f"{response_model.__name__} schema. Always call this tool exactly once."
+        ),
+        "input_schema": response_model.model_json_schema(),
+    }
+    response = await client.messages.create(
+        model=model,
+        max_tokens=_DEFAULT_MAX_TOKENS,
+        system=system,
+        messages=[{"role": "user", "content": user}],
+        tools=[tool],
+        tool_choice={"type": "tool", "name": _TOOL_NAME},
+    )
+    tool_use_block = next(
+        (block for block in response.content if block.type == "tool_use"), None
+    )
+    tool_input: dict[str, Any] = dict(tool_use_block.input) if tool_use_block else {}
+    return (
+        tool_input,
+        response.usage.input_tokens,
+        response.usage.output_tokens,
+        response.stop_reason,
+    )
+
+
 async def call_structured(
     *,
     system: str,
@@ -91,17 +134,23 @@ async def call_structured(
     prompt_name: str | None = None,
     max_retries: int = 1,
 ) -> tuple[BaseModel, LLMCallMeta]:
-    """Call Claude and force a structured response matching `response_model`.
+    """Call the configured LLM provider and force a structured response matching
+    `response_model`.
 
-    Structured output is forced via tool use: a single `emit_result` tool whose
-    `input_schema` is `response_model.model_json_schema()`, with `tool_choice`
-    pinned to that tool. If the tool's input fails pydantic validation, the
-    validation error is appended to the user message and the call retries (up
-    to `max_retries` additional attempts) so the model can self-correct.
+    Structured output is forced via a single `emit_result` tool whose schema is
+    `response_model.model_json_schema()`, with tool choice pinned to that tool:
+    Anthropic tool use by default, or OpenAI-style function calling when
+    `Settings.llm_provider` is "openai_compat" (Gemini / xAI / Ollama, selected
+    by `Settings.openai_base_url`). If the tool's input fails pydantic
+    validation, the validation error is appended to the user message and the
+    call retries (up to `max_retries` additional attempts) so the model can
+    self-correct.
 
     Respects `Settings.llm_mode`:
       - "off": raises LLMUnavailableError immediately, no API call.
-      - "live"/"record": raises LLMUnavailableError if no API key is resolved.
+      - "live"/"record": raises LLMUnavailableError if no API key (or, for
+        openai_compat, no base URL) is resolved. A key is optional for
+        localhost endpoints such as Ollama.
       - "record": on success, writes a fixture under `settings.fixture_dir`.
       - "replay": looks up a fixture by hash of (model, system, user); raises
         LLMUnavailableError if none exists. Never calls the network.
@@ -116,12 +165,6 @@ async def call_structured(
     if mode == "off":
         raise LLMUnavailableError("llm_mode is 'off'; no LLM calls are permitted")
 
-    api_key = settings.resolved_api_key()
-    if mode in ("live", "record") and api_key is None:
-        raise LLMUnavailableError(
-            "no Anthropic API key configured; treating as unavailable"
-        )
-
     if mode == "replay":
         return _replay(
             settings.fixture_dir,
@@ -135,16 +178,47 @@ async def call_structured(
             response_model=response_model,
         )
 
-    assert api_key is not None  # narrowed above for live/record
-    client = _get_client(api_key)
-    tool = {
-        "name": _TOOL_NAME,
-        "description": (
-            f"Emit the final result as structured data matching the "
-            f"{response_model.__name__} schema. Always call this tool exactly once."
-        ),
-        "input_schema": response_model.model_json_schema(),
-    }
+    # live/record: resolve provider credentials and bind the one-call helper.
+    # Everything below the dispatch (retries, logging, cost, fixtures) is shared.
+    if settings.llm_provider == "openai_compat":
+        # Imported here rather than at module top: openai_compat imports
+        # LLMUnavailableError from this module, so a top-level import would be
+        # circular.
+        from apcopilot.llm.openai_compat import call_openai_compat, is_localhost
+
+        base_url = settings.openai_base_url
+        if not base_url:
+            raise LLMUnavailableError(
+                "llm_provider is 'openai_compat' but no base URL is configured; "
+                "treating as unavailable"
+            )
+        openai_key = settings.resolved_openai_key()
+        if openai_key is None and not is_localhost(base_url):
+            raise LLMUnavailableError(
+                "no API key configured for the openai-compatible endpoint; "
+                "treating as unavailable"
+            )
+        call_once = partial(
+            call_openai_compat,
+            base_url=base_url,
+            api_key=openai_key,
+            model=model,
+            system=system,
+            response_model=response_model,
+        )
+    else:
+        api_key = settings.resolved_api_key()
+        if api_key is None:
+            raise LLMUnavailableError(
+                "no Anthropic API key configured; treating as unavailable"
+            )
+        call_once = partial(
+            _call_anthropic,
+            api_key=api_key,
+            model=model,
+            system=system,
+            response_model=response_model,
+        )
 
     current_user = user
     total_attempts = max_retries + 1
@@ -153,25 +227,11 @@ async def call_structured(
     for attempt in range(1, total_attempts + 1):
         logger.debug("llm_call.start", model=model, node=node, attempt=attempt, mode=mode)
         start = time.monotonic()
-        response = await client.messages.create(
-            model=model,
-            max_tokens=_DEFAULT_MAX_TOKENS,
-            system=system,
-            messages=[{"role": "user", "content": current_user}],
-            tools=[tool],
-            tool_choice={"type": "tool", "name": _TOOL_NAME},
+        tool_input, input_tokens, output_tokens, stop_reason = await call_once(
+            user=current_user
         )
         latency_ms = int((time.monotonic() - start) * 1000)
-
-        input_tokens = response.usage.input_tokens
-        output_tokens = response.usage.output_tokens
         cost_usd = compute_cost_usd(model, input_tokens, output_tokens)
-        stop_reason = response.stop_reason
-
-        tool_use_block = next(
-            (block for block in response.content if block.type == "tool_use"), None
-        )
-        tool_input: dict[str, Any] = dict(tool_use_block.input) if tool_use_block else {}
 
         log_llm_call(
             run_id=run_id,

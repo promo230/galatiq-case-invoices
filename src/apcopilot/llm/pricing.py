@@ -11,6 +11,8 @@ _PRICING_PER_MILLION_USD: dict[str, tuple[Decimal, Decimal]] = {
     # model: (input price per 1M tokens, output price per 1M tokens)
     "claude-haiku-4-5": (Decimal("1.00"), Decimal("5.00")),
     "claude-sonnet-5": (Decimal("3.00"), Decimal("15.00")),
+    # OpenAI-compatible providers (Gemini free tier, local Ollama) deliberately
+    # have no rows: the Decimal(0) fallback below is their actual cost.
 }
 
 _ONE_MILLION = Decimal(1_000_000)
