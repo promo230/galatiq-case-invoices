@@ -1,20 +1,24 @@
-# Galatiq Case: Invoice Processing Automation
+# apcopilot — multi-agent invoice processing
 
-> **Looking for the built system?** Everything below is the original case brief.
-> **[SETUP.md](SETUP.md)** documents how to install and run the implementation —
-> CLI, dashboard, tests, configuration, and the expected result for every sample
-> invoice.
+A working multi-agent prototype that automates accounts-payable invoice
+processing end to end: LLM extraction with self-correction, a deterministic
+policy rules engine, a VP-approval reflection loop, a human review queue, and
+an ops dashboard. Built against the case's framing — a manufacturer losing
+**$2M/year** to manual invoice processing, a 30% error rate, and 5-day delays
+([CASE_BRIEF.md](CASE_BRIEF.md)) — it takes a messy document in any of five
+formats and produces one audited approve / reject / escalate decision.
 
 ## Quick start
 
-No API key needed. The system runs fully offline: deterministic parsers for
-structured formats, a regex heuristic extractor for messy text, and a rules-based
-approval fallback stand in for the LLM whenever it isn't available.
+**No API key needed.** The system runs fully offline: deterministic parsers
+for structured formats, a regex heuristic extractor for messy text, and a
+rules-based approval fallback stand in for the LLM whenever it isn't
+available.
 
 ```bash
 uv sync
 
-# The entrypoint this brief specifies:
+# The entrypoint the brief specifies:
 uv run python main.py --invoice_path=data/invoices/invoice_1001.txt
 
 # Process the whole sample corpus:
@@ -22,139 +26,53 @@ uv run apcopilot batch
 
 # Or drive it from the dashboard at http://localhost:8000
 uv run apcopilot serve
+
+# The full test suite — offline, no key, ~2s:
+uv sync --extra dev && uv run pytest
 ```
 
 To switch the LLM reasoning on, `cp .env.example .env` and set
 `ANTHROPIC_API_KEY`. To pin the offline path explicitly, set
-`APCOPILOT_LLM_MODE=off`. Full details, including `apcopilot reset-db` and the
-test suite, are in **[SETUP.md](SETUP.md)**.
+`APCOPILOT_LLM_MODE=off`. Full details, including `apcopilot reset-db`, are in
+**[SETUP.md](SETUP.md)**.
 
----
+## Highlights
 
-## Background
-
-Acme Corp is a PE-backed manufacturing firm losing **$2M/year** on manual invoice processing. Invoices arrive via email as PDFs in messy formats with frequent errors. Staff manually extract data, validate against a legacy inventory database (inconsistent), obtain VP approval (via email chains), and process payment (via a banking API).
-
-**Current pain points:**
-- 30% error rate
-- 5-day processing delays
-- Frustrated stakeholders
-
-## Objective
-
-Build a **multi-agent system** that automates the end-to-end invoice processing workflow. The system must run as a working prototype — not just designs or slides.
-
-## Workflow
-
-The system should handle four stages:
-
-1. **Ingestion** — Extract structured data from invoice documents (PDFs, text files). Fields include: Vendor, Amount, Items (with quantities), and Due Date. Expect unstructured text, typos, missing data, and potentially fraudulent entries.
-
-2. **Validation** — Verify extracted data against a mock inventory database (SQLite). Flag mismatches such as quantity exceeding available stock or items not found in inventory.
-
-3. **Approval** — Simulate VP-level review with rule-based decision-making (e.g., invoices over $10K require additional scrutiny). The agent should reason through approval/rejection with a reflection or critique loop.
-
-4. **Payment** — If approved, call a mock payment function. If rejected, log the rejection with reasoning.
-
-## Technical Requirements
-
-- **LLM Integration**: Use xAI's Grok as the core reasoning engine (via the xAI API at https://grok.x.ai). Other models are acceptable if you don't have an API key.
-- **Multi-Agent Orchestration**: Use a framework such as LangGraph, CrewAI, AutoGen, or a custom solution.
-- **Agent Capabilities**: Function calling / tool use, structured outputs, and self-correction loops.
-- **Runtime**: Assume no internet for external APIs — simulate everything locally.
-- **Tech Stack**: Python (preferred), with libraries like `langchain`, `crewai`, `autogen`, `pdfplumber`, `PyMuPDF`, etc. Run locally — no cloud deployment.
-
-## Provided Resources
-
-### Mock Invoice Data
-
-Sample invoices are provided in the `data/invoices/` directory in various formats (PDF, CSV, JSON, TXT). Use these as inputs for testing. The data intentionally includes a mix of clean entries and problematic ones — identifying and handling issues is part of the challenge.
-
-### Mock Inventory Database (Required Setup)
-
-Before running the system, you **must** create a local SQLite database that the validation agent will check invoices against. The sample invoices in `data/invoices/` reference specific items and quantities — your database needs to contain matching inventory records so the validation stage can flag mismatches, out-of-stock items, and unknown products.
-
-Below is a starter schema and seed data that covers the core items referenced across the provided invoices:
-
-```python
-import sqlite3
-
-conn = sqlite3.connect('inventory.db')  # Persist to file so all agents can access it
-cursor = conn.cursor()
-
-cursor.execute('CREATE TABLE IF NOT EXISTS inventory (item TEXT PRIMARY KEY, stock INTEGER)')
-cursor.execute("""
-    INSERT INTO inventory VALUES
-    ('WidgetA', 15),
-    ('WidgetB', 10),
-    ('GadgetX', 5),
-    ('FakeItem', 0)
-""")
-conn.commit()
-```
-
-**Why this matters:** The sample invoices are designed to test your validation logic against this database. For example:
-
-| Scenario | Invoice | What should happen |
-|---|---|---|
-| Normal order within stock | INV-1001, INV-1004, INV-1006 | Items found, quantities valid — passes validation |
-| Quantity exceeds stock | INV-1002 (requests 20× GadgetX, only 5 in stock) | Flagged as stock mismatch |
-| Fraudulent / zero-stock item | INV-1003 (references FakeItem, 0 stock) | Flagged as out of stock or suspicious |
-| Item not in database at all | INV-1008 (SuperGizmo, MegaSprocket), INV-1016 (WidgetC) | Flagged as unknown item |
-| Invalid data | INV-1009 (negative quantity) | Flagged as data integrity issue |
-
-You may extend the seed data with additional items or columns (e.g., unit price, category) to support richer validation — the above is the minimum needed to exercise the provided test invoices. If you want your system to also validate pricing or vendor information, consider adding tables for those as well.
-
-### Mock Payment API
-
-```python
-def mock_payment(vendor, amount):
-    print(f"Paid {amount} to {vendor}")
-    return {"status": "success"}
-```
-
-### Grok API Setup
-
-```python
-from xai import Grok
-
-client = Grok(api_key="your_key")
-response = client.chat.completions.create(
-    model="grok-3",
-    messages=[{"role": "user", "content": "Reason about this..."}]
-)
-```
-
-## Running the System
-
-The system should be executable from the command line:
-
-```bash
-python main.py --invoice_path=data/invoices/invoice1.txt
-```
-
-Output should include structured logs and results.
-
-## Evaluation Criteria
-
-- **Functionality** — Does the system work end-to-end?
-- **Code Quality** — Clean, testable, well-structured code with error handling and observability
-- **Agentic Sophistication** — LLM integration, multi-agent flow, tool use, self-correction loops
-- **Shipping Mindset** — Valuable MVP delivered under ambiguity; scope ruthlessly cut where needed
-- **Presentation** — Clear translation of technical decisions to business impact
-- **Above/Beyond** - Have you made it your own? Implemented additional features that make the solution feel great? Expanded assumptions? Added to test cases?
-- **UI/UX** - Users will understand and enjoy using this system.
-
-## Submission
-
-Submit your solution as a link to a public GitHub repository — GitHub only (github.com).
-
----
+- **Hybrid ingestion across five formats** — `.json/.csv/.xml` go through
+  deterministic parsers; messy `.txt/.pdf` use LLM extraction (Haiku first,
+  Sonnet retry on low confidence) with a regex heuristic fallback, so a missing
+  key degrades quality, never availability.
+- **Policy as config** — every threshold, tolerance, and fraud weight lives in
+  [`data/seed/policies.yaml`](data/seed/policies.yaml); the validation rules
+  engine makes zero LLM calls and emits severity-ranked flags with evidence
+  attached.
+- **Deterministic, auditable fraud scoring** — a weighted sum of named signals
+  a controller can reconstruct by hand. Adversarial invoice content is data to
+  score, never instructions to follow: see
+  [`invoice_2001_prompt_injection.txt`](data/invoices/invoice_2001_prompt_injection.txt).
+- **A reflection loop with teeth** — VP approval is propose/critique, and every
+  draft is verified in Python: hallucinated policy citations fail closed, and
+  no model output can approve past the numeric guardrails.
+- **Duplicate and revision control by content hash** — the same invoice arriving
+  in two formats is recognized as one document; a revised total against an
+  already-paid invoice is blocked. INV-1004 is paid exactly once.
+- **Idempotent payments on a checkpointed graph** — LangGraph with per-node
+  SQLite checkpoints: a crash mid-pipeline resumes without re-running (or
+  re-billing) earlier stages, and replay past the pay node can never double-pay.
+- **Human in the loop** — `needs_human` runs land in a review queue; approve and
+  reject actions are recorded with actor, note, and a trace entry.
+- **Four LLM modes** — `live` / `record` / `replay` / `off`, so runs are
+  reproducible and the whole system is gradeable with zero API cost.
+- **114 offline tests** — including the adversarial corpus: prompt injection,
+  split-line stock aggregation, FX conversion, cross-format duplicates. No key,
+  no network, no cost.
+- **Observability** — structured JSONL logs, a per-run stage trace timeline,
+  and LLM cost tracking surfaced in the dashboard's business-case metrics.
 
 ## Architecture
 
-Everything below the case brief is the implementation. One document in, one audited
-decision out; every stage writes to the same SQLite run store the dashboard reads.
+One document in, one audited decision out; every stage writes to the same
+SQLite run store the dashboard reads.
 
 ```mermaid
 flowchart TD
@@ -193,5 +111,18 @@ a crash mid-pipeline resumes without re-running (or re-billing) earlier stages.
 | `src/apcopilot/cli.py`, `main.py` | Entrypoints: single invoice, batch, serve, reset-db |
 | `data/seed/policies.yaml` | Every threshold, tolerance, fraud weight, and citable policy rule — no policy in code |
 
-The reasoning behind each of these choices — and what was deliberately rejected — is in
-**[DECISIONS.md](DECISIONS.md)**.
+## Sample corpus
+
+`data/invoices/` holds the invoices provided with the case — clean, over-stock,
+fraudulent, and malformed entries across TXT, PDF, JSON, CSV, and XML — plus
+four adversarial additions (`invoice_2001+`) written to attack the system's own
+defenses. The expected outcome for every file (status, lane, flags) is
+tabulated in [SETUP.md](SETUP.md#9-expected-results-for-the-sample-corpus).
+
+## Docs
+
+| Doc | Contents |
+|---|---|
+| [SETUP.md](SETUP.md) | Install, configuration, CLI and API reference, expected results per invoice, troubleshooting |
+| [DECISIONS.md](DECISIONS.md) | The design tradeoffs: what was chosen, what it was chosen over, and why |
+| [CASE_BRIEF.md](CASE_BRIEF.md) | The original assignment, preserved verbatim |

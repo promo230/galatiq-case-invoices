@@ -1,6 +1,6 @@
 # Setup & Usage
 
-How to install and run this implementation of the [case brief](README.md).
+How to install and run this implementation of the [case brief](CASE_BRIEF.md).
 
 Everything runs locally. No cloud services, no external APIs, no internet
 connection required at runtime.
