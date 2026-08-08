@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AP Copilot — Invoice Processing</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <header class="app-header">
+    <div class="header-top">
+      <div class="brand">
+        <h1>AP Copilot</h1>
+        <p class="tagline">Multi-agent invoice processing — ingest &rarr; validate &rarr; approve &rarr; settle</p>
+      </div>
+      <div class="header-actions">
+        <button id="reset-db-btn" class="btn btn-danger-ghost" type="button">Reset demo DB</button>
+      </div>
+    </div>
+
+    <div id="impact-strip" class="impact-strip" aria-label="Business impact summary">
+      <div class="impact-skeleton">Loading business impact summary&hellip;</div>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <section class="toolbar">
+      <form id="run-single-form" class="toolbar-form">
+        <label for="single-path-input">Run a single invoice
+          <input
+            type="text"
+            id="single-path-input"
+            name="document_path"
+            value="data/invoices/invoice_1001.txt"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </label>
+        <button type="submit" class="btn btn-primary" id="run-single-btn">Run</button>
+      </form>
+
+      <form id="run-batch-form" class="toolbar-form">
+        <label for="batch-dir-input">Batch directory
+          <input type="text" id="batch-dir-input" name="dir" value="data/invoices" autocomplete="off" spellcheck="false" />
+        </label>
+        <label for="batch-pattern-input">Pattern
+          <input type="text" id="batch-pattern-input" name="pattern" value="*" autocomplete="off" spellcheck="false" />
+        </label>
+        <button type="submit" class="btn btn-secondary" id="run-batch-btn">Run batch</button>
+      </form>
+
+      <div class="toolbar-status">
+        <label class="filter-label" for="status-filter">Status
+          <select id="status-filter">
+            <option value="">All</option>
+            <option value="queued">Queued</option>
+            <option value="running">Running</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+            <option value="needs_human">Needs human</option>
+            <option value="failed">Failed</option>
+          </select>
+        </label>
+        <button id="refresh-btn" class="btn btn-ghost" type="button" title="Refresh now">Refresh</button>
+        <span id="poll-indicator" class="poll-indicator"></span>
+      </div>
+    </section>
+
+    <details class="rulebook-panel" id="rulebook-panel">
+      <summary>Rulebook <span class="muted">&mdash; thresholds &amp; policy rules the agents reason against</span></summary>
+      <div id="rulebook-content" class="rulebook-content">Loading policy configuration&hellip;</div>
+    </details>
+
+    <section class="queue-section">
+      <div id="queue-loading" class="loading-state">Loading runs&hellip;</div>
+      <div id="queue-empty" class="empty-state" hidden>
+        <p>No runs yet</p>
+        <p class="muted">Kick off a single invoice above, or process the whole <code>data/invoices/</code> directory with &ldquo;Run batch&rdquo;.</p>
+      </div>
+      <table id="runs-table" class="runs-table" hidden>
+        <thead>
+          <tr>
+            <th>Invoice</th>
+            <th>Vendor</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Lane</th>
+            <th>Flags</th>
+            <th>Fraud</th>
+            <th>Updated</th>
+          </tr>
+        </thead>
+        <tbody id="runs-tbody"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <div id="detail-overlay" class="detail-overlay" hidden>
+    <div class="detail-panel" role="dialog" aria-modal="true" aria-label="Run detail">
+      <button id="detail-close" class="detail-close" type="button" aria-label="Close">&times;</button>
+      <div id="detail-content"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
