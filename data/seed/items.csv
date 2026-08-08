@@ -1,0 +1,5 @@
+sku,name,unit_price,stock,category,status
+WIDGETA,WidgetA,250.00,15,widgets,active
+WIDGETB,WidgetB,500.00,10,widgets,active
+GADGETX,GadgetX,750.00,5,gadgets,active
+FAKEITEM,FakeItem,,0,unknown,blocked
