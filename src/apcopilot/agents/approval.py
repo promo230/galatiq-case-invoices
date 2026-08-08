@@ -281,6 +281,10 @@ async def _reflection_loop(
         if passed:
             draft.rounds = round_num
             draft.critique_notes = critique_notes
+            # Stamped here, not trusted from the model: ApprovalDecision.decided_by
+            # defaults to "rules", and the proposer fills the schema without knowing
+            # which actor it is. Provenance is the harness's call.
+            draft.decided_by = "vp_agent"
             return draft
 
         critique_notes.extend(round_problems)
