@@ -1,5 +1,36 @@
 # Galatiq Case: Invoice Processing Automation
 
+> **Looking for the built system?** Everything below is the original case brief.
+> **[SETUP.md](SETUP.md)** documents how to install and run the implementation —
+> CLI, dashboard, tests, configuration, and the expected result for every sample
+> invoice.
+
+## Quick start
+
+No API key needed. The system runs fully offline: deterministic parsers for
+structured formats, a regex heuristic extractor for messy text, and a rules-based
+approval fallback stand in for the LLM whenever it isn't available.
+
+```bash
+uv sync
+
+# The entrypoint this brief specifies:
+uv run python main.py --invoice_path=data/invoices/invoice_1001.txt
+
+# Process the whole sample corpus:
+uv run apcopilot batch
+
+# Or drive it from the dashboard at http://localhost:8000
+uv run apcopilot serve
+```
+
+To switch the LLM reasoning on, `cp .env.example .env` and set
+`ANTHROPIC_API_KEY`. To pin the offline path explicitly, set
+`APCOPILOT_LLM_MODE=off`. Full details, including `apcopilot reset-db` and the
+test suite, are in **[SETUP.md](SETUP.md)**.
+
+---
+
 ## Background
 
 Acme Corp is a PE-backed manufacturing firm losing **$2M/year** on manual invoice processing. Invoices arrive via email as PDFs in messy formats with frequent errors. Staff manually extract data, validate against a legacy inventory database (inconsistent), obtain VP approval (via email chains), and process payment (via a banking API).
@@ -117,3 +148,50 @@ Output should include structured logs and results.
 ## Submission
 
 Submit your solution as a link to a public GitHub repository — GitHub only (github.com).
+
+---
+
+## Architecture
+
+Everything below the case brief is the implementation. One document in, one audited
+decision out; every stage writes to the same SQLite run store the dashboard reads.
+
+```mermaid
+flowchart TD
+    DOC["Invoice document<br/>pdf / txt / json / csv / xml"]
+    DOC -->|"json / csv / xml"| DET["Deterministic parser"]
+    DOC -->|"txt / pdf"| LLME["LLM extraction<br/>Haiku, Sonnet retry"]
+    LLME -->|"LLM off or unavailable"| HEUR["Regex heuristic fallback"]
+    DET --> VAL
+    LLME --> VAL
+    HEUR --> VAL
+    VAL["Validate: deterministic rules engine<br/>integrity, math, inventory, vendor, duplicate, fraud"]
+    REF[("SQLite reference data<br/>items / vendors / fx rates")] --> VAL
+    POL["policies.yaml<br/>every threshold and policy rule"] --> VAL
+    POL --> APR
+    VAL --> APR["Approve: hard guardrails, then<br/>propose / critique reflection loop"]
+    APR -->|approve| PAY["Idempotent mock payment"]
+    APR -->|reject| REJ["Rejection log with rationale"]
+    APR -->|needs human| HUM["Human review queue"]
+    HUM --> UI
+    RUNS[("Run store<br/>runs / flags / traces / llm_calls")] --> UI["Dashboard + CLI"]
+```
+
+The four stages run as a LangGraph `StateGraph` with per-node SQLite checkpointing, so
+a crash mid-pipeline resumes without re-running (or re-billing) earlier stages.
+
+| Path | Responsibility |
+|---|---|
+| `src/apcopilot/graph/` | LangGraph wiring: ingest → validate → approve → settle, checkpointing, stop-on-failure routing |
+| `src/apcopilot/ingestion/` | Format dispatch: deterministic parsers, LLM extraction for messy text, regex heuristic fallback |
+| `src/apcopilot/agents/rules/` | Deterministic validation rule families, one module each, evidence attached to every flag |
+| `src/apcopilot/agents/approval.py` | VP approval: guardrails, propose/critique loop, Python-side citation and threshold verification |
+| `src/apcopilot/llm/` | Anthropic wrapper: structured output via forced tool use; live / record / replay / off modes |
+| `src/apcopilot/tools/` | Shared lookups: policy, inventory, vendors, FX, payment ledger |
+| `src/apcopilot/db/` | Schema, seeding, and the run store (runs, flags, traces, LLM calls, payments) |
+| `src/apcopilot/api/` | FastAPI dashboard and human review actions |
+| `src/apcopilot/cli.py`, `main.py` | Entrypoints: single invoice, batch, serve, reset-db |
+| `data/seed/policies.yaml` | Every threshold, tolerance, fraud weight, and citable policy rule — no policy in code |
+
+The reasoning behind each of these choices — and what was deliberately rejected — is in
+**[DECISIONS.md](DECISIONS.md)**.
