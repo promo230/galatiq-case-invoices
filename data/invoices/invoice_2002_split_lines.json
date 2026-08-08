@@ -1,0 +1,19 @@
+{
+  "invoice_number": "INV-2002",
+  "vendor": {
+    "name": "Widgets Inc.",
+    "address": "100 Main St, Chicago, IL 60601"
+  },
+  "date": "2026-01-21",
+  "due_date": "2026-02-21",
+  "line_items": [
+    {"item": "WidgetB", "quantity": 6, "unit_price": 500.00, "amount": 3000.00},
+    {"item": "WidgetB", "quantity": 6, "unit_price": 500.00, "amount": 3000.00}
+  ],
+  "subtotal": 6000.00,
+  "tax_rate": 0.0,
+  "tax_amount": 0.00,
+  "total": 6000.00,
+  "currency": "USD",
+  "payment_terms": "Net 30"
+}

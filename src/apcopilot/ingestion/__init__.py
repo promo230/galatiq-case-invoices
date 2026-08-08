@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+from datetime import date
 from decimal import Decimal
 from pathlib import Path
+from typing import Any
 
 from apcopilot.config import get_settings
 from apcopilot.logging import get_logger
@@ -27,8 +29,20 @@ _DETERMINISTIC_PARSERS = {
 _MESSY_DOCUMENT_SUFFIXES = {".txt", ".pdf"}
 
 
+def _hash_default(value: Any) -> str:
+    if isinstance(value, Decimal):
+        # Canonicalize the exponent so numerically equal amounts hash equally.
+        # A JSON `250.00` arrives as Decimal("250.0") (via float) while the same
+        # figure in XML/CSV text arrives as Decimal("250.00"); without this, the
+        # same invoice in two formats would false-positive as a REVISION_CONFLICT.
+        return format(value.normalize(), "f")
+    if isinstance(value, date):
+        return value.isoformat()
+    raise TypeError(f"unhashable content value of type {type(value).__name__}")
+
+
 def _content_hash(invoice: ExtractedInvoice) -> str:
-    payload = json.dumps(invoice.model_dump(mode="json"), sort_keys=True)
+    payload = json.dumps(invoice.model_dump(mode="python"), sort_keys=True, default=_hash_default)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 

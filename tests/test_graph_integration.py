@@ -288,5 +288,8 @@ def test_discover_invoices_is_sorted_and_filterable(invoice_dir, tmp_path):
 
     assert found == sorted(found)
     assert all(p.is_file() for p in found)
-    assert discover_invoices(invoice_dir, "*.xml") == [invoice_dir / "invoice_1014.xml"]
+    assert discover_invoices(invoice_dir, "*.xml") == [
+        invoice_dir / "invoice_1014.xml",
+        invoice_dir / "invoice_2004_dup_format_b.xml",
+    ]
     assert discover_invoices(tmp_path / "does-not-exist") == []
