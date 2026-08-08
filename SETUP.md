@@ -201,7 +201,7 @@ change.
 
 ```bash
 uv sync --extra dev
-uv run pytest              # 114 tests, ~2s
+uv run pytest              # 126 tests, ~2s
 uv run pytest -v
 uv run pytest --cov=apcopilot
 uv run ruff check src tests main.py

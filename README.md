@@ -89,7 +89,7 @@ auto-rejected by rules — zero LLM spend, full policy citation:
   reject actions are recorded with actor, note, and a trace entry.
 - **Four LLM modes** — `live` / `record` / `replay` / `off`, so runs are
   reproducible and the whole system is gradeable with zero API cost.
-- **114 offline tests** — including the adversarial corpus: prompt injection,
+- **126 offline tests** — including the adversarial corpus: prompt injection,
   split-line stock aggregation, FX conversion, cross-format duplicates. No key,
   no network, no cost.
 - **Observability** — structured JSONL logs, a per-run stage trace timeline,
