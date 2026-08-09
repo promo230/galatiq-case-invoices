@@ -1,5 +1,7 @@
 # apcopilot — multi-agent invoice processing
 
+[![CI](https://github.com/promo230/galatiq-case-invoices/actions/workflows/ci.yml/badge.svg)](https://github.com/promo230/galatiq-case-invoices/actions/workflows/ci.yml)
+
 A working multi-agent prototype that automates accounts-payable invoice
 processing end to end: LLM extraction with self-correction, a deterministic
 policy rules engine, a VP-approval reflection loop, a human review queue, and
