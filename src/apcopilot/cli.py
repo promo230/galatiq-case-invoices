@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
+import sys
 from pathlib import Path
 
 import typer
@@ -38,8 +40,13 @@ def run(
     from apcopilot.graph import run_invoice
 
     _bootstrap()
-    result = asyncio.run(run_invoice(invoice_path))
-    if not json_out:
+    if json_out:
+        # Incidental pipeline prints (e.g. mock_payment's "Paid ... to ..."
+        # line) go to stderr so stdout carries pure, pipeable JSON.
+        with contextlib.redirect_stdout(sys.stderr):
+            result = asyncio.run(run_invoice(invoice_path))
+    else:
+        result = asyncio.run(run_invoice(invoice_path))
         print_run_summary(console, result)
         console.rule("Full JSON result")
     print_json_result(console, result)
@@ -62,11 +69,18 @@ def batch(
         console.print(f"[yellow]No files matching {pattern!r} found in {dir}[/yellow]")
         raise typer.Exit(code=0)
 
-    results = asyncio.run(run_batch(paths))
-    if not json_out:
+    if json_out:
+        # See `run`: keep stdout pure JSON when piping.
+        with contextlib.redirect_stdout(sys.stderr):
+            results = asyncio.run(run_batch(paths))
+        print_json_result(console, results)
+    else:
+        results = asyncio.run(run_batch(paths))
         print_batch_table(console, results)
-        console.rule("Full JSON results")
-    print_json_result(console, results)
+        console.print(
+            "[dim]Full results: re-run with --json, or open the dashboard "
+            "(apcopilot serve)[/dim]"
+        )
 
 
 @app.command("reset-db")

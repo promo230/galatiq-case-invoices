@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from typing import Any
 
 from rich.console import Console
@@ -127,8 +128,9 @@ def print_batch_table(console: Console, results: list[dict[str, Any]]) -> None:
         total = run.get("total")
         currency = run.get("currency") or ""
         total_str = f"{total} {currency}".strip() if total is not None else "-"
+        document_path = run.get("document_path")
         table.add_row(
-            str(run.get("document_path") or "-"),
+            os.path.basename(str(document_path)) if document_path else "-",
             str(run.get("vendor_name") or "-"),
             _status_text(run.get("status")),
             str(run.get("lane") or "-"),

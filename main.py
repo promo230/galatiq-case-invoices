@@ -19,6 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
 import argparse
 import asyncio
+import contextlib
 import json
 
 from rich.console import Console
@@ -66,8 +67,13 @@ def build_parser() -> argparse.ArgumentParser:
 async def _run_single(invoice_path: Path, *, json_only: bool, console: Console) -> dict:
     from apcopilot.graph import run_invoice
 
-    result = await run_invoice(invoice_path)
-    if not json_only:
+    if json_only:
+        # Incidental pipeline prints (e.g. mock_payment's "Paid ... to ..."
+        # line) go to stderr so stdout carries pure, pipeable JSON.
+        with contextlib.redirect_stdout(sys.stderr):
+            result = await run_invoice(invoice_path)
+    else:
+        result = await run_invoice(invoice_path)
         print_run_summary(console, result)
         console.rule("Full JSON result")
     print_json_result(console, result)
@@ -79,8 +85,12 @@ async def _run_batch(batch_dir: Path, *, json_only: bool, console: Console) -> l
     if not paths:
         console.print(f"[yellow]No invoice files found in {batch_dir}[/yellow]")
         return []
-    results = await run_batch(paths)
-    if not json_only:
+    if json_only:
+        # See _run_single: keep stdout pure JSON when piping.
+        with contextlib.redirect_stdout(sys.stderr):
+            results = await run_batch(paths)
+    else:
+        results = await run_batch(paths)
         print_batch_table(console, results)
         console.rule("Full JSON results")
     print_json_result(console, results)
