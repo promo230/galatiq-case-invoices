@@ -23,7 +23,8 @@ uv sync
 # The entrypoint the brief specifies:
 uv run python main.py --invoice_path=data/invoices/invoice_1001.txt
 
-# Process the whole sample corpus:
+# Process the whole sample corpus. The batch will flag INV-1001 from the run
+# above as already paid — the duplicate control working; 'uv run apcopilot reset-db --yes' clears state.
 uv run apcopilot batch
 
 # Or drive it from the dashboard at http://localhost:8000
@@ -144,8 +145,9 @@ a crash mid-pipeline resumes without re-running (or re-billing) earlier stages.
 `data/invoices/` holds the invoices provided with the case — clean, over-stock,
 fraudulent, and malformed entries across TXT, PDF, JSON, CSV, and XML — plus
 four adversarial additions (`invoice_2001+`) written to attack the system's own
-defenses. The expected outcome for every file (status, lane, flags) is
-tabulated in [SETUP.md](SETUP.md#9-expected-results-for-the-sample-corpus).
+defenses. The expected outcomes (status, lane, flags) for the brief's core
+scenarios and the adversarial additions are tabulated in
+[SETUP.md §9](SETUP.md#9-expected-results-for-the-sample-corpus).
 
 ## Docs
 

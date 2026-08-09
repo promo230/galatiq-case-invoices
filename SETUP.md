@@ -169,13 +169,14 @@ if you want to drive it directly:
 
 | Method | Path | Purpose |
 |---|---|---|
-| `GET` | `/runs` | The run queue. |
-| `GET` | `/runs/{run_id}` | One run with its flags and full stage trace. |
-| `POST` | `/runs` | Process a single invoice. |
-| `POST` | `/runs/batch` | Process a directory. |
-| `GET` | `/dashboard` | Aggregate metrics, including the business-case translation. |
-| `GET` | `/policies` | The policy rules the VP agent is allowed to cite. |
-| `POST` | `/reset` | Reset the database. |
+| `GET` | `/api/runs` | The run queue. |
+| `GET` | `/api/runs/{run_id}` | One run with its flags and full stage trace. |
+| `POST` | `/api/runs` | Process a single invoice. |
+| `POST` | `/api/runs/{run_id}/action` | Approve or reject a `needs_human` run (human review). |
+| `POST` | `/api/runs/batch` | Process a directory. |
+| `GET` | `/api/dashboard` | Aggregate metrics, including the business-case translation. |
+| `GET` | `/api/policies` | The policy rules the VP agent is allowed to cite. |
+| `POST` | `/api/reset` | Reset the database. |
 
 Interactive API docs are at <http://localhost:8000/docs>.
 
