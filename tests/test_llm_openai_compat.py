@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from collections.abc import Iterator
 from typing import Any
 
 import httpx
@@ -269,7 +270,7 @@ def test_validation_error_retry_appends_error_and_succeeds(
     monkeypatch.setattr(llm_client, "log_llm_call", lambda **kwargs: logged.append(kwargs))
 
     users: list[str] = []
-    responses = iter([{"name": "apple"}, {"name": "apple", "count": 3}])
+    responses: Iterator[dict[str, Any]] = iter([{"name": "apple"}, {"name": "apple", "count": 3}])
 
     async def fake_call(**kwargs: Any) -> tuple[dict[str, Any], int, int, str | None]:
         users.append(kwargs["user"])

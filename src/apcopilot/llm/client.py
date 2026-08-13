@@ -103,6 +103,9 @@ async def _call_anthropic(
         ),
         "input_schema": response_model.model_json_schema(),
     }
+    # Plain dicts satisfy the Anthropic SDK's TypedDict params at runtime; mypy
+    # can't verify the "role"/"type" literal fields structurally, so this call
+    # is exempted rather than fought with casts.
     response = await client.messages.create(
         model=model,
         max_tokens=_DEFAULT_MAX_TOKENS,
@@ -110,7 +113,7 @@ async def _call_anthropic(
         messages=[{"role": "user", "content": user}],
         tools=[tool],
         tool_choice={"type": "tool", "name": _TOOL_NAME},
-    )
+    )  # type: ignore[call-overload]
     tool_use_block = next(
         (block for block in response.content if block.type == "tool_use"), None
     )

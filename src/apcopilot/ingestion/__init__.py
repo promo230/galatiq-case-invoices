@@ -76,14 +76,14 @@ async def ingest_document(document_path: Path, *, run_id: str | None = None) -> 
         raise ValueError(f"unsupported invoice document extension: {suffix!r}")
 
     if suffix in _DETERMINISTIC_PARSERS:
-        invoice, _warnings = _DETERMINISTIC_PARSERS[suffix](raw_text)
+        parsed_invoice, _warnings = _DETERMINISTIC_PARSERS[suffix](raw_text)
         return ExtractionResult(
-            invoice=invoice,
+            invoice=parsed_invoice,
             method="deterministic",
             attempts=1,
             source_format=suffix.lstrip("."),
             document_path=str(document_path),
-            content_hash=_content_hash(invoice),
+            content_hash=_content_hash(parsed_invoice),
             raw_text=_pretty_render(document_path, raw_text),
         )
 
